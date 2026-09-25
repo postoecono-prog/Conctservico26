@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conecta Serviços V2</title>
+  <meta name="description" content="Encontre profissionais verificados e solicite orçamentos." />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --bg:#06111d;--bg2:#0b1b2b;--card:#102538;--card2:#0c2032;
+      --gold:#ffc21c;--gold2:#ff9e16;--text:#f5f7fb;--muted:#a8b7c7;
+      --green:#20d49b;--red:#ff4b4b;--line:#29445c;--radius:22px;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:
+    radial-gradient(circle at 20% 0%,#12304a 0,transparent 38%),linear-gradient(140deg,var(--bg),#02070d);
+    color:var(--text);min-height:100vh} button,input,select,textarea{font:inherit}
+    button{cursor:pointer}.hidden{display:none!important}.app{max-width:1200px;margin:auto;padding:20px}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0 24px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:23px}.logo{width:45px;height:45px;border-radius:15px;
+    display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),#ff8d00);color:#07111b;font-size:29px;font-weight:1000;
+    box-shadow:0 0 35px #ffb00045}.brand span{color:var(--gold)}
+    .btn{border:1px solid transparent;border-radius:14px;padding:13px 18px;font-weight:800;transition:.2s}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#101820}.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08)}
+    .btn-outline{background:transparent;border-color:var(--line);color:var(--text)}.btn-danger{background:var(--red);color:white}
+    .btn-small{padding:9px 12px;font-size:13px}.grid{display:grid;gap:18px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:linear-gradient(145deg,#10283d,#091a2a);
+    border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 15px 50px #0003}
+    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:stretch;margin:28px 0}
+    .hero-main{padding:38px;border-radius:30px;background:linear-gradient(135deg,#0c2a40,#07121e 70%);border:1px solid #426078;position:relative;overflow:hidden}
+    .hero-main:after{content:"";position:absolute;width:300px;height:300px;border-radius:50%;background:#ffb00015;right:-130px;bottom:-140px}
+    h1{font-size:clamp(34px,5vw,65px);line-height:1.02;margin:15px 0}.gold{color:var(--gold)}.muted{color:var(--muted)}
+    .tag{display:inline-flex;align-items:center;gap:8px;border:1px solid #526c83;border-radius:100px;padding:7px 11px;font-size:12px;color:#dbe8f4}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:25px 0 12px}
+    .section-title h2{margin:0;font-size:22px}.input,.select,.textarea{width:100%;padding:13px 14px;border-radius:13px;border:1px solid #345069;background:#071522;color:var(--text);outline:none}
+    .input:focus,.select:focus,.textarea:focus{border-color:var(--gold)}.textarea{min-height:110px;resize:vertical}.label{display:block;font-size:13px;color:#c9d6e3;margin:0 0 7px}
+    .field{margin:13px 0}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+    .auth-wrap{max-width:500px;margin:45px auto}.tabs{display:flex;gap:5px;background:#06131f;border:1px solid var(--line);padding:5px;border-radius:15px;margin-bottom:18px}
+    .tab{flex:1;background:transparent;border:0;color:var(--muted);padding:11px;border-radius:11px}.tab.active{background:var(--gold);color:#101820;font-weight:900}
+    .pill{display:inline-block;padding:5px 9px;border-radius:100px;font-size:11px;font-weight:800;background:#15374a;color:#d6e5f4}
+    .pill.green{background:#0b503d;color:#76f2c5}.pill.yellow{background:#5b4311;color:#ffdc72}.pill.red{background:#5a2027;color:#ff9b9b}
+    .service-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.service{padding:18px 10px;text-align:center;border-radius:18px;
+    background:#0b2132;border:1px solid #24435b;color:var(--text)}.service .icon{font-size:28px;display:block;margin-bottom:8px}.service:hover{border-color:var(--gold);transform:translateY(-2px)}
+    .professional{display:flex;gap:15px;align-items:flex-start}.avatar{width:62px;height:62px;flex:0 0 62px;border-radius:20px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#365a78,#132a3e);font-size:25px;border:2px solid var(--gold)}
+    .professional h3{margin:0 0 5px}.professional p{margin:4px 0;color:var(--muted);font-size:13px}.price{font-size:20px;font-weight:900;color:var(--gold)}
+    .bottom-nav{position:sticky;bottom:12px;display:flex;justify-content:space-around;gap:5px;background:#06131fec;border:1px solid #365069;backdrop-filter:blur(16px);padding:10px;border-radius:20px;margin-top:28px}
+    .bottom-nav button{background:transparent;color:var(--muted);border:0;padding:9px;font-size:12px}.bottom-nav button.active{color:var(--gold)}
+    .notice{border-left:4px solid var(--gold);background:#2b2510;padding:14px;border-radius:12px;color:#ffe39a;font-size:13px}
+    .empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed #3c566d;border-radius:16px}
+    .footer{padding:35px 0 20px;text-align:center;color:var(--muted);font-size:12px}.toast{position:fixed;right:18px;bottom:18px;z-index:10;background:#102e40;border:1px solid #5b778e;padding:15px 18px;border-radius:14px;max-width:350px;box-shadow:0 20px 60px #0008}
+    .modal{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:18px;z-index:5}.modal-card{width:min(520px,100%);max-height:90vh;overflow:auto}
+    @media(max-width:850px){.hero{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}.service-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.app{padding:12px}.grid-2,.grid-3,.form-grid{grid-template-columns:1fr}.hero-main{padding:25px}h1{font-size:42px}.nav{align-items:flex-start}.brand{font-size:19px}}
+  </style>
+</head>
+<body>
+<div id="toast" class="toast hidden"></div>
+<div class="app">
+  <header class="nav">
+    <div class="brand"><div class="logo">C</div><div>Conecta <span>Serviços</span></div></div>
+    <div id="nav-actions" class="actions" style="margin:0"></div>
+  </header>
+
+  <main id="app"></main>
+  <footer class="footer">Conecta Serviços • Segurança, praticidade e qualidade para contratar serviços.</footer>
+</div>
+
+<script>
+const SUPABASE_URL = "https://wwzisnrdcvbrnyntbnrz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_T4xnLnRzdbOQt3SI8OUdSw_SyT1sEXl";
+const ADMIN_WHATSAPP = "5579999055301";
+const PROFESSIONAL_FEE = 4.99;
+const SUBSCRIPTION_DAYS = 30;
+const sbReady = !SUPABASE_URL.startsWith("COLE_AQUI") && !SUPABASE_ANON_KEY.startsWith("COLE_AQUI");
+const db = sbReady ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let currentUser = null, currentProfile = null, selectedService = null;
+
+const $ = id => document.getElementById(id);
+function toast(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),4200)}
+function money(v){return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function initials(name=""){return name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase()}
+function wa(text){return `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(text)}`}
+function demoGuard(){if(!sbReady){toast("Configure as chaves do Supabase no início do arquivo HTML.");return true}return false}
+
+async function getSession(){
+  if(!db){renderLanding();return}
+  const {data:{session}}=await db.auth.if(db){db.auth.onAuthStateChange((event)=>{if(event==="PASSWORD_RECOVERY")showResetPassword();});}
+getSession();currentUser=session?.user||null;
+  if(currentUser){await loadProfile();renderDashboard()}else renderLanding();
+  db.auth.onAuthStateChange(async(_e,session)=>{currentUser=session?.user||null;if(currentUser){await loadProfile();renderDashboard()}else{currentProfile=null;renderLanding()}});
+}
+async function loadProfile(){
+  const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).single();
+  if(error){console.error(error);return} currentProfile=data;
+}
+function nav(){
+  $("nav-actions").innerHTML=currentUser
+   ? `<span class="tag">${esc(currentProfile?.full_name||currentUser.email)}</span><button class="btn btn-outline btn-small" onclick="logout()">Sair</button>`
+   : `<button class="btn btn-outline btn-small" onclick="showAuth('login')">Entrar</button><button class="btn btn-primary btn-small" onclick="showAuth('register')">Criar conta</button>`;
+}
+function renderLanding(){
+ nav();
+ $("app").innerHTML=`
+ <section class="hero">
+  <div class="hero-main">
+    <span class="tag">✦ Plataforma de serviços locais</span>
+    <h1>Conecte sua necessidade a um <span class="gold">profissional de confiança.</span></h1>
+    <p class="muted" style="font-size:17px;max-width:560px">Encontre eletricistas, encanadores, profissionais de limpeza, pintura, manutenção e muito mais.</p>
+    <div class="actions"><button class="btn btn-primary" onclick="showAuth('register')">Começar agora →</button><button class="btn btn-outline" onclick="showAuth('login')">Já tenho conta</button></div>
+    <div class="actions"><span class="tag">✓ Profissionais cadastrados</span><span class="tag">✓ Solicitação de orçamento</span><span class="tag">✓ Atendimento pelo WhatsApp</span></div>
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Seja um profissional</h2>
+    <p class="muted">Cadastre seus serviços e apareça para clientes da sua região.</p>
+    <div class="notice"><b>Taxa de ativação: ${money(PROFESSIONAL_FEE)}</b><br>Pagamento manual ao ADM via Pix/WhatsApp. Após a confirmação, seu acesso profissional é liberado por 30 dias.</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="showAuth('register','professional')">Cadastrar como profissional</button>
+    <p class="muted" style="font-size:12px;margin-bottom:0">O cadastro fica pendente até o ADM confirmar o pagamento.</p>
+  </div>
+ </section>
+ <div class="section-title"><h2>Encontre por categoria</h2></div>
+ <div class="service-grid">
+  ${[['🏠','Construção'],['⚡','Elétrica'],['🚰','Hidráulica'],['🧹','Limpeza'],['🎨','Pintura'],['🌱','Jardinagem'],['🛠️','Manutenção'],['✨','Outros']].map(s=>`<button class="service" onclick="showAuth('register')"><span class="icon">${s[0]}</span><b>${s[1]}</b></button>`).join("")}
+ </div>
+ <div class="section-title"><h2>Como funciona</h2></div>
+ <div class="grid grid-3">
+  ${[['01','Crie sua conta','Cliente ou profissional, em poucos passos.'],['02','Conecte-se','Clientes encontram profissionais e pedem orçamento.'],['03','Resolva','Combine os detalhes e o atendimento diretamente.']].map(x=>`<div class="card"><span class="gold">${x[0]}</span><h3>${x[1]}</h3><p class="muted">${x[2]}</p></div>`).join("")}
+ </div>`;
+}
+function showAuth(mode='login',role='client'){
+ nav();
+ $("app").innerHTML=`
+ <div class="auth-wrap card">
+  <div class="tabs"><button class="tab ${mode==='login'?'active':''}" onclick="showAuth('login')">Entrar</button><button class="tab ${mode==='register'?'active':''}" onclick="showAuth('register','${role}')">Criar conta</button></div>
+  <h2>${mode==='login'?'Bem-vindo de volta':'Crie sua conta'}</h2>
+  ${mode==='register'?`<div class="field"><label class="label">Tipo de conta</label><select id="role" class="select"><option value="client" ${role==='client'?'selected':''}>Cliente</option><option value="professional" ${role==='professional'?'selected':''}>Profissional</option></select></div>`:''}
+  <div class="field"><label class="label">Nome completo</label><input id="name" class="input" placeholder="Seu nome" ${mode==='login'?'style="display:none"':''}></div>
+  <div class="field"><label class="label">E-mail</label><input id="email" type="email" class="input" placeholder="voce@email.com"></div>
+  <div class="field"><label class="label">Telefone / WhatsApp</label><input id="phone" class="input" placeholder="(79) 99999-9999" ${mode==='login'?'style="display:none"':''}></div>
+  <div class="field"><label class="label">Cidade / Estado</label><input id="city" class="input" placeholder="Ex.: Aracaju - SE" ${mode==='login'?'style="display:none"':''}></div>
+  <div class="field"><label class="label">Senha</label><input id="password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="${mode==='login'?'login()':'register()'}">${mode==='login'?'Entrar':'Cadastrar'}</button>
+  <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Voltar</button>
+  ${mode==='register'?`<p class="muted" style="font-size:12px">Profissionais: depois do cadastro, você receberá instruções para falar com o ADM e pagar ${money(PROFESSIONAL_FEE)}.</p>`:''}
+ </div>`;
+}
+async function login(){
+ if(demoGuard())return;
+ const email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password)return toast("Preencha e-mail e senha.");
+ const {error}=await db.auth.signInWithPassword({email,password});if(error)return toast(error.message);
+}
+async function forgotPassword(){
+  if(demoGuard())return;
+  const email=$("email")?.value.trim();
+  if(!email)return toast("Digite seu e-mail antes de solicitar a recuperação.");
+  const redirectTo=window.location.href.split("#")[0];
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error)return toast(error.message);
+  toast("Enviamos um link de recuperação para seu e-mail. Confira também a caixa de spam.");
+}
+
+function showResetPassword(){
+  nav();
+  $("app").innerHTML=`<div class="auth-wrap card"><h2>Redefinir senha</h2><p class="muted">Digite uma nova senha para recuperar o acesso.</p><div class="field"><label class="label">Nova senha</label><input id="new-password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div><div class="field"><label class="label">Confirmar nova senha</label><input id="confirm-password" type="password" class="input" placeholder="Repita a nova senha"></div><button class="btn btn-primary" style="width:100%" onclick="updatePassword()">Salvar nova senha</button><button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Cancelar</button></div>`;
+}
+
+async function updatePassword(){
+  if(demoGuard())return;
+  const password=$("new-password").value,confirmPassword=$("confirm-password").value;
+  if(password.length<6)return toast("A senha precisa ter pelo menos 6 caracteres.");
+  if(password!==confirmPassword)return toast("As senhas não coincidem.");
+  const {error}=await db.auth.updateUser({password});
+  if(error)return toast(error.message);
+  toast("Senha atualizada com sucesso!");
+  setTimeout(()=>renderDashboard(),800);
+}
+
+async function register(){
+ if(demoGuard())return;
+ const name=$("name").value.trim(),email=$("email").value.trim(),phone=$("phone").value.trim(),city=$("city").value.trim(),password=$("password").value,role=$("role").value;
+ if(!name||!email||!phone||!city||password.length<6)return toast("Preencha todos os campos. A senha precisa ter 6 caracteres.");
+ const {data,error}=await db.auth.signUp({email,password});
+ if(error)return toast(error.message);
+ if(data.user){
+   const {error:e}=await db.from("profiles").insert({id:data.user.id,full_name:name,email,phone,city,role,status:role==='professional'?'pending':'active'});
+   if(e)return toast(e.message);
+   if(role==='professional'){
+    const msg=`Olá, ADM! Fiz meu cadastro no Conecta Serviços como profissional.%0A*Nome:* ${name}%0A*E-mail:* ${email}%0A*Telefone:* ${phone}%0A*Cidade:* ${city}%0A*Taxa de ativação:* ${money(PROFESSIONAL_FEE)}%0AEstou pronto para enviar o comprovante e aguardar a liberação por 30 dias.`;
+    window.open(wa(msg),"_blank");
+    toast("Cadastro criado. Confira seu WhatsApp para falar com o ADM.");
+   }else toast("Cadastro criado! Verifique seu e-mail, se solicitado.");
+ }
+}
+async function logout(){if(db)await db.auth.signOut();currentUser=null;currentProfile=null;renderLanding()}
+function renderDashboard(){
+ nav();
+ if(currentProfile?.role==='admin')return renderAdmin();
+ if(currentProfile?.role==='professional')return renderProfessional();
+ return renderClient();
+}
+function renderClient(){
+ $("app").innerHTML=`
+ <div class="section-title"><h2>Olá, ${esc((currentProfile?.full_name||'cliente').split(' ')[0])}! 👋</h2><span class="pill green">Conta ativa</span></div>
+ <div class="card"><h2>Encontre o serviço que você precisa</h2><p class="muted">Busque por categoria e solicite um orçamento.</p><div class="field"><input id="search" class="input" placeholder="🔎 Buscar profissional ou serviço..." oninput="loadProfessionals()"></div></div>
+ <div class="section-title"><h2>Profissionais disponíveis</h2><button class="btn btn-outline btn-small" onclick="loadProfessionals()">Atualizar</button></div>
+ <div id="professionals" class="grid grid-2"><div class="empty">Carregando profissionais...</div></div>
+ <div class="section-title"><h2>Minhas solicitações</h2></div><div id="my-requests" class="grid"><div class="empty">Carregando...</div></div>
+ <div class="bottom-nav"><button class="active">⌂<br>Início</button><button onclick="loadProfessionals()">⌕<br>Buscar</button><button onclick="renderClient()">♡<br>Favoritos</button><button onclick="showProfile()">♙<br>Perfil</button></div>`;
+ loadProfessionals();loadRequests();
+}
+async function loadProfessionals(){
+ if(!db)return;
+ let q=db.from("profiles").select("*").eq("role","professional").eq("status","active").gt("subscription_until",new Date().toISOString()).order("created_at",{ascending:false});
+ const term=$("search")?.value?.trim();if(term)q=q.or(`full_name.ilike.%${term}%,service_category.ilike.%${term}%,city.ilike.%${term}%`);
+ const {data,error}=await q;if(error)return toast(error.message);
+ $("professionals").innerHTML=data?.length?data.map(p=>`<div class="card"><div class="professional"><div class="avatar">${initials(p.full_name)}</div><div style="flex:1"><h3>${esc(p.full_name)} <span class="pill green">Verificado</span></h3><p>${esc(p.service_category||'Profissional de serviços')}</p><p>📍 ${esc(p.city||'Região não informada')}</p><p>📞 ${esc(p.phone||'')}</p></div></div><div class="actions"><button class="btn btn-primary btn-small" onclick="openRequest('${p.id}','${esc(p.full_name)}')">Solicitar orçamento</button><a class="btn btn-outline btn-small" href="${wa('Olá, '+p.full_name+'. Encontrei seu perfil no Conecta Serviços e gostaria de solicitar um orçamento.')}" target="_blank">WhatsApp</a></div></div>`).join(""):'<div class="empty">Nenhum profissional ativo encontrado.</div>';
+}
+async function openRequest(proId,name){
+ const service=prompt("Qual serviço você precisa?");if(!service)return;
+ const description=prompt("Descreva o serviço, local e detalhes:");if(!description)return;
+ const {error}=await db.from("service_requests").insert({client_id:currentUser.id,professional_id:proId,service,description,status:'pending'});
+ if(error)return toast(error.message);toast("Solicitação enviada!");loadRequests();
+}
+async function loadRequests(){
+ const {data,error}=await db.from("service_requests").select("*,professional:professional_id(full_name),client:client_id(full_name)").or(`client_id.eq.${currentUser.id},professional_id.eq.${currentUser.id}`).order("created_at",{ascending:false});
+ if(error)return;
+ $("my-requests").innerHTML=data?.length?data.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><b>${esc(r.service)}</b><span class="pill">${esc(r.status)}</span></div><p class="muted">${esc(r.description)}</p><small class="muted">Profissional: ${esc(r.professional?.full_name||'A definir')} • Cliente: ${esc(r.client?.full_name||'')}</small></div>`).join(""):'<div class="empty">Você ainda não possui solicitações.</div>';
+}
+function renderProfessional(){
+ const active=currentProfile?.role==='professional' && currentProfile.status==='active' && currentProfile.subscription_until && new Date(currentProfile.subscription_until)>new Date();
+ $("app").innerHTML=`
+ <div class="section-title"><h2>Painel do profissional</h2><span class="pill ${active?'green':'yellow'}">${active?'Assinatura ativa':'Aguardando ativação'}</span></div>
+ ${active?`<div class="card"><h2>Olá, ${esc(currentProfile.full_name)} 👋</h2><p class="muted">Seu acesso está ativo até <b>${new Date(currentProfile.subscription_until).toLocaleDateString('pt-BR')}</b>.</p></div>`:
+ `<div class="card"><h2>Ative seu acesso profissional</h2><div class="notice">Taxa: <b>${money(PROFESSIONAL_FEE)}</b>. Fale com o ADM, pague via Pix e envie o comprovante. O ADM libera o acesso por 30 dias após confirmar o pagamento.</div><a class="btn btn-primary" style="display:inline-block;margin-top:16px;text-decoration:none" href="${wa('Olá, ADM! Sou '+currentProfile.full_name+'. Quero pagar a taxa de ativação de '+money(PROFESSIONAL_FEE)+' e liberar meu acesso por 30 dias.')}" target="_blank">Falar com ADM no WhatsApp</a></div>`}
+ <div class="grid grid-2">
+  <div class="card"><h3>Minha conta</h3><p class="muted">${esc(currentProfile.email)}</p><p class="muted">${esc(currentProfile.phone||'')}</p><p class="muted">${esc(currentProfile.city||'')}</p></div>
+  <div class="card"><h3>Meus serviços</h3><p class="muted">${esc(currentProfile.service_category||'Ainda não informado')}</p><button class="btn btn-outline btn-small" onclick="editProfessional()">Editar dados</button></div>
+ </div>
+ <div class="section-title"><h2>Solicitações recebidas</h2></div><div id="pro-requests" class="grid"><div class="empty">Carregando...</div></div>
+ <div class="bottom-nav"><button class="active">⌂<br>Início</button><button onclick="loadProfessionalRequests()">▤<br>Solicitações</button><button onclick="editProfessional()">⚙<br>Perfil</button></div>`;
+ loadProfessionalRequests();
+}
+async function loadProfessionalRequests(){
+ const {data,error}=await db.from("service_requests").select("*,client:client_id(full_name,phone,city)").eq("professional_id",currentUser.id).order("created_at",{ascending:false});
+ if(error)return;
+ $("pro-requests").innerHTML=data?.length?data.map(r=>`<div class="card"><b>${esc(r.service)}</b><p class="muted">${esc(r.description)}</p><p class="muted">Cliente: ${esc(r.client?.full_name||'')} • ${esc(r.client?.phone||'')}</p><div class="actions"><button class="btn btn-primary btn-small" onclick="updateRequest('${r.id}','accepted')">Aceitar</button><button class="btn btn-outline btn-small" onclick="updateRequest('${r.id}','rejected')">Recusar</button></div></div>`).join(""):'<div class="empty">Nenhuma solicitação recebida.</div>';
+}
+async function updateRequest(id,status){const {error}=await db.from("service_requests").update({status}).eq("id",id);if(error)return toast(error.message);toast("Solicitação atualizada.");loadProfessionalRequests()}
+async function editProfessional(){
+ const category=prompt("Categoria/serviço principal:",currentProfile.service_category||"");if(category===null)return;
+ const city=prompt("Cidade/Estado:",currentProfile.city||"");if(city===null)return;
+ const {error}=await db.from("profiles").update({service_category:category,city}).eq("id",currentUser.id);if(error)return toast(error.message);
+ await loadProfile();renderProfessional();
+}
+function showProfile(){toast("Perfil conectado ao seu cadastro.")}
+async function renderAdmin(){
+ $("app").innerHTML=`
+ <div class="section-title"><h2>👑 Painel administrativo</h2><span class="pill green">Administrador</span></div>
+ <div class="grid grid-3" id="stats"></div>
+ <div class="section-title"><h2>Profissionais pendentes</h2><button class="btn btn-outline btn-small" onclick="renderAdmin()">Atualizar</button></div>
+ <div id="pending" class="grid"><div class="empty">Carregando...</div></div>
+ <div class="section-title"><h2>Solicitações da plataforma</h2></div><div id="admin-requests" class="grid"><div class="empty">Carregando...</div></div>`;
+ loadAdmin();
+}
+async function loadAdmin(){
+ const [{data:users},{data:pending},{data:reqs}]=await Promise.all([
+  db.from("profiles").select("id,role,status"),
+  db.from("profiles").select("*").eq("role","professional").eq("status","pending").order("created_at",{ascending:false}),
+  db.from("service_requests").select("*,client:client_id(full_name),professional:professional_id(full_name)").order("created_at",{ascending:false}).limit(30)
+ ]);
+ $("stats").innerHTML=[['Usuários',users?.length||0],['Pendentes',pending?.length||0],['Solicitações',reqs?.length||0]].map(x=>`<div class="card"><span class="muted">${x[0]}</span><h2 class="gold">${x[1]}</h2></div>`).join("");
+ $("pending").innerHTML=pending?.length?pending.map(p=>`<div class="card"><div class="professional"><div class="avatar">${initials(p.full_name)}</div><div style="flex:1"><h3>${esc(p.full_name)}</h3><p>${esc(p.email)} • ${esc(p.phone||'')}</p><p>${esc(p.city||'')} • ${esc(p.service_category||'')}</p><span class="pill yellow">Pagamento pendente</span></div></div><div class="actions"><button class="btn btn-primary btn-small" onclick="activateProfessional('${p.id}')">Confirmar pagamento e liberar 30 dias</button><a class="btn btn-outline btn-small" target="_blank" href="${wa('Olá, '+p.full_name+'. Estou entrando em contato sobre sua ativação no Conecta Serviços.')}">WhatsApp</a></div></div>`).join(""):'<div class="empty">Nenhum profissional pendente.</div>';
+ $("admin-requests").innerHTML=reqs?.length?reqs.map(r=>`<div class="card"><b>${esc(r.service)}</b><p class="muted">${esc(r.description)}</p><small class="muted">Cliente: ${esc(r.client?.full_name||'')} • Profissional: ${esc(r.professional?.full_name||'')} • ${esc(r.status)}</small></div>`).join(""):'<div class="empty">Nenhuma solicitação.</div>';
+}
+async function activateProfessional(id){
+ if(!confirm("Você confirmou o pagamento de R$ 4,99 e deseja liberar 30 dias?"))return;
+ const {data,error}=await db.rpc("admin_activate_professional",{professional_id:id,days:SUBSCRIPTION_DAYS});
+ if(error)return toast(error.message);toast("Profissional ativado até "+new Date(data).toLocaleDateString("pt-BR"));loadAdmin();
+}
+getSession();
+</script>
+</body>
+</html>
