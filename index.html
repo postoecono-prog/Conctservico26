@@ -86,7 +86,11 @@ function demoGuard(){if(!sbReady){toast("Configure as chaves do Supabase no iní
 
 async function getSession(){
   if(!db){renderLanding();return}
-  const {data:{session}}=await db.auth.if(db){db.auth.onAuthStateChange((event)=>{if(event==="PASSWORD_RECOVERY")showResetPassword();});}
+  const {data:{session}}=await db.auth.if(db){
+ db.auth.onAuthStateChange((event)=>{
+  if(event==="PASSWORD_RECOVERY")showResetPassword();
+ });
+}
 getSession();currentUser=session?.user||null;
   if(currentUser){await loadProfile();renderDashboard()}else renderLanding();
   db.auth.onAuthStateChange(async(_e,session)=>{currentUser=session?.user||null;if(currentUser){await loadProfile();renderDashboard()}else{currentProfile=null;renderLanding()}});
@@ -141,6 +145,7 @@ function showAuth(mode='login',role='client'){
   <div class="field"><label class="label">Cidade / Estado</label><input id="city" class="input" placeholder="Ex.: Aracaju - SE" ${mode==='login'?'style="display:none"':''}></div>
   <div class="field"><label class="label">Senha</label><input id="password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div>
   <button class="btn btn-primary" style="width:100%" onclick="${mode==='login'?'login()':'register()'}">${mode==='login'?'Entrar':'Cadastrar'}</button>
+  ${mode==='login'?`<button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="forgotPassword()">🔑 Esqueci minha senha</button>`:''}
   <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Voltar</button>
   ${mode==='register'?`<p class="muted" style="font-size:12px">Profissionais: depois do cadastro, você receberá instruções para falar com o ADM e pagar ${money(PROFESSIONAL_FEE)}.</p>`:''}
  </div>`;
@@ -151,32 +156,39 @@ async function login(){
  if(!email||!password)return toast("Preencha e-mail e senha.");
  const {error}=await db.auth.signInWithPassword({email,password});if(error)return toast(error.message);
 }
+
 async function forgotPassword(){
-  if(demoGuard())return;
-  const email=$("email")?.value.trim();
-  if(!email)return toast("Digite seu e-mail antes de solicitar a recuperação.");
-  const redirectTo=window.location.href.split("#")[0];
-  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
-  if(error)return toast(error.message);
-  toast("Enviamos um link de recuperação para seu e-mail. Confira também a caixa de spam.");
+ if(demoGuard())return;
+ const email=$("email")?.value.trim();
+ if(!email)return toast("Digite seu e-mail antes de solicitar a recuperação.");
+ const redirectTo=window.location.href.split("#")[0];
+ const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
+ if(error)return toast(error.message);
+ toast("Enviamos um link de recuperação para seu e-mail. Confira também a caixa de spam.");
 }
-
 function showResetPassword(){
-  nav();
-  $("app").innerHTML=`<div class="auth-wrap card"><h2>Redefinir senha</h2><p class="muted">Digite uma nova senha para recuperar o acesso.</p><div class="field"><label class="label">Nova senha</label><input id="new-password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div><div class="field"><label class="label">Confirmar nova senha</label><input id="confirm-password" type="password" class="input" placeholder="Repita a nova senha"></div><button class="btn btn-primary" style="width:100%" onclick="updatePassword()">Salvar nova senha</button><button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Cancelar</button></div>`;
+ nav();
+ $("app").innerHTML=`
+ <div class="auth-wrap card">
+  <h2>Redefinir senha</h2>
+  <p class="muted">Digite uma nova senha para recuperar o acesso à sua conta.</p>
+  <div class="field"><label class="label">Nova senha</label><input id="new-password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div>
+  <div class="field"><label class="label">Confirmar nova senha</label><input id="confirm-password" type="password" class="input" placeholder="Repita a nova senha"></div>
+  <button class="btn btn-primary" style="width:100%" onclick="updatePassword()">Salvar nova senha</button>
+  <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Cancelar</button>
+ </div>`;
 }
-
 async function updatePassword(){
-  if(demoGuard())return;
-  const password=$("new-password").value,confirmPassword=$("confirm-password").value;
-  if(password.length<6)return toast("A senha precisa ter pelo menos 6 caracteres.");
-  if(password!==confirmPassword)return toast("As senhas não coincidem.");
-  const {error}=await db.auth.updateUser({password});
-  if(error)return toast(error.message);
-  toast("Senha atualizada com sucesso!");
-  setTimeout(()=>renderDashboard(),800);
+ if(demoGuard())return;
+ const password=$("new-password").value,confirmation=$("confirm-password").value;
+ if(password.length<6)return toast("A senha precisa ter pelo menos 6 caracteres.");
+ if(password!==confirmation)return toast("As senhas não coincidem.");
+ const {error}=await db.auth.updateUser({password});
+ if(error)return toast(error.message);
+ toast("Senha atualizada com sucesso!");
+ await db.auth.signOut();
+ showAuth("login");
 }
-
 async function register(){
  if(demoGuard())return;
  const name=$("name").value.trim(),email=$("email").value.trim(),phone=$("phone").value.trim(),city=$("city").value.trim(),password=$("password").value,role=$("role").value;
