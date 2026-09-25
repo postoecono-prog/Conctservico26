@@ -67,8 +67,8 @@
 </div>
 
 <script>
-const SUPABASE_URL = "https://wwzisnrdcvbrnyntbnrz.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_T4xnLnRzdbOQt3SI8OUdSw_SyT1sEXl";
+const SUPABASE_URL = "COLE_AQUI_SUA_URL_SUPABASE";
+const SUPABASE_ANON_KEY = "COLE_AQUI_SUA_CHAVE_ANON";
 const ADMIN_WHATSAPP = "5579999055301";
 const PROFESSIONAL_FEE = 4.99;
 const SUBSCRIPTION_DAYS = 30;
@@ -86,8 +86,7 @@ function demoGuard(){if(!sbReady){toast("Configure as chaves do Supabase no iní
 
 async function getSession(){
   if(!db){renderLanding();return}
-  const {data:{session}}=await db.auth.if(db){db.auth.onAuthStateChange((event)=>{if(event==="PASSWORD_RECOVERY")showResetPassword();});}
-getSession();currentUser=session?.user||null;
+  const {data:{session}}=await db.auth.getSession();currentUser=session?.user||null;
   if(currentUser){await loadProfile();renderDashboard()}else renderLanding();
   db.auth.onAuthStateChange(async(_e,session)=>{currentUser=session?.user||null;if(currentUser){await loadProfile();renderDashboard()}else{currentProfile=null;renderLanding()}});
 }
@@ -151,32 +150,6 @@ async function login(){
  if(!email||!password)return toast("Preencha e-mail e senha.");
  const {error}=await db.auth.signInWithPassword({email,password});if(error)return toast(error.message);
 }
-async function forgotPassword(){
-  if(demoGuard())return;
-  const email=$("email")?.value.trim();
-  if(!email)return toast("Digite seu e-mail antes de solicitar a recuperação.");
-  const redirectTo=window.location.href.split("#")[0];
-  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
-  if(error)return toast(error.message);
-  toast("Enviamos um link de recuperação para seu e-mail. Confira também a caixa de spam.");
-}
-
-function showResetPassword(){
-  nav();
-  $("app").innerHTML=`<div class="auth-wrap card"><h2>Redefinir senha</h2><p class="muted">Digite uma nova senha para recuperar o acesso.</p><div class="field"><label class="label">Nova senha</label><input id="new-password" type="password" class="input" placeholder="Mínimo de 6 caracteres"></div><div class="field"><label class="label">Confirmar nova senha</label><input id="confirm-password" type="password" class="input" placeholder="Repita a nova senha"></div><button class="btn btn-primary" style="width:100%" onclick="updatePassword()">Salvar nova senha</button><button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="renderLanding()">Cancelar</button></div>`;
-}
-
-async function updatePassword(){
-  if(demoGuard())return;
-  const password=$("new-password").value,confirmPassword=$("confirm-password").value;
-  if(password.length<6)return toast("A senha precisa ter pelo menos 6 caracteres.");
-  if(password!==confirmPassword)return toast("As senhas não coincidem.");
-  const {error}=await db.auth.updateUser({password});
-  if(error)return toast(error.message);
-  toast("Senha atualizada com sucesso!");
-  setTimeout(()=>renderDashboard(),800);
-}
-
 async function register(){
  if(demoGuard())return;
  const name=$("name").value.trim(),email=$("email").value.trim(),phone=$("phone").value.trim(),city=$("city").value.trim(),password=$("password").value,role=$("role").value;
